@@ -16,7 +16,7 @@ func Run(config *models.Config, databasePath *string) {
 	var (
 		ctx              = context.Background()
 		binanceAPIKey    = os.Getenv("BINANCE_API_KEY")
-		binanceSecretKey = os.Getenv("BINANCE_API_SECRET")
+		binanceSecretKey = os.Getenv("BINANCE_SECRET_KEY")
 		telegramToken    = os.Getenv("TELEGRAM_TOKEN")
 		telegramUser, _  = strconv.Atoi(os.Getenv("TELEGRAM_USER"))
 		pairs            = make([]string, 0, len(config.AssetWeights))
