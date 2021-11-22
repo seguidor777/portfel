@@ -1,0 +1,11 @@
+# Environment variables
+.env
+
+# IDE directory
+.idea
+
+# Pair feeds
+testdata/*.csv
+
+# Trades database
+user_data/trades.db
