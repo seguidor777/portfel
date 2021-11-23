@@ -19,14 +19,14 @@ type DiamondHands struct {
 }
 
 func NewDiamondHands(minimumBalance float64, assetWeights map[string]float64) *DiamondHands {
-	s := &DiamondHands{
+	d := &DiamondHands{
 		MinimumBalance: minimumBalance,
 		AssetWeights:   assetWeights,
 		LastClose:      make(map[string]float64),
 		AssetStake:     make(map[string]float64),
 	}
 
-	return s
+	return d
 }
 
 func (d DiamondHands) Timeframe() string {
@@ -54,6 +54,7 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	if quotePosition >= d.MinimumBalance {
+		// Round to 2 decimals
 		asset := math.Floor(d.AssetWeights[df.Pair]*quotePosition*100) / 100
 
 		// Buy more coins

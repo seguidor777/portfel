@@ -52,7 +52,7 @@ func Run(config *models.Config) {
 	wallet := exchange.NewPaperWallet(
 		ctx,
 		"USDT",
-		exchange.WithPaperAsset("USDT", 500),
+		exchange.WithPaperAsset("USDT", 12000),
 		exchange.WithDataFeed(csvFeed),
 	)
 
