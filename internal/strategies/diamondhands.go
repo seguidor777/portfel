@@ -5,6 +5,7 @@ import (
 	"github.com/rodrigo-brito/ninjabot/model"
 	"github.com/rodrigo-brito/ninjabot/service"
 	log "github.com/sirupsen/logrus"
+	"math"
 	"sync/atomic"
 )
 
@@ -53,7 +54,7 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	if quotePosition >= d.MinimumBalance {
-		asset := d.AssetWeights[df.Pair] * quotePosition
+		asset := math.Floor(d.AssetWeights[df.Pair]*quotePosition*100) / 100
 
 		// Buy more coins
 		_, err = broker.CreateOrderMarketQuote(ninjabot.SideTypeBuy, df.Pair, asset)
