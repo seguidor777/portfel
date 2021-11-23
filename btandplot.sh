@@ -3,7 +3,7 @@
 set -e
 
 # Change this according your portfolio
-pairs=(BTC ETH ADA SOL DOT AVAX LINK LUNA MANA MATIC ROSE AAVE AUDIO AXS SHIB THETA)
+pairs=(BTC ETH ADA SOL DOT AVAX LINK LUNA MANA MATIC ROSE SAND AUDIO AXS SHIB THETA)
 timeframe=1d
 days=365
 

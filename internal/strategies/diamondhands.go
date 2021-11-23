@@ -9,6 +9,8 @@ import (
 	"sync/atomic"
 )
 
+const usdSymbol = "USDT"
+
 var counter uint32
 
 type DiamondHands struct {
@@ -43,11 +45,14 @@ func (d DiamondHands) Indicators(df *model.Dataframe) {
 
 func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 	// Trade as long there is available balance
-	_, quotePosition, err := broker.Position(df.Pair)
+	account, err := broker.Account()
 	if err != nil {
 		log.Error(err)
 		return
 	}
+
+	balance := account.Balance(usdSymbol)
+	quotePosition := balance.Free
 
 	for _, stake := range d.AssetStake {
 		quotePosition += stake
