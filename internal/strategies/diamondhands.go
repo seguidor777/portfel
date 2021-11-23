@@ -73,8 +73,8 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 
 		// If diversification has been completed then reset stakes
 		if int(atomic.LoadUint32(&counter)) == len(d.AssetWeights) {
-			for key, _ := range d.AssetStake {
-				d.AssetStake[key] = 0.0
+			for pair := range d.AssetStake {
+				d.AssetStake[pair] = 0.0
 			}
 
 			atomic.CompareAndSwapUint32(&counter, counter, 0)

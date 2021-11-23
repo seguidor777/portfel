@@ -22,7 +22,7 @@ func Run(config *models.Config) {
 		pairs           = make([]string, 0, len(config.AssetWeights))
 	)
 
-	for pair, _ := range config.AssetWeights {
+	for pair := range config.AssetWeights {
 		pairs = append(pairs, pair)
 	}
 

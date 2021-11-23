@@ -20,7 +20,7 @@ func Run(config *models.Config) {
 		pairs = make([]string, 0, len(config.AssetWeights))
 	)
 
-	for pair, _ := range config.AssetWeights {
+	for pair := range config.AssetWeights {
 		pairs = append(pairs, pair)
 	}
 
@@ -31,7 +31,7 @@ func Run(config *models.Config) {
 	strategy := strategies.NewDiamondHands(config.MinimumBalance, config.AssetWeights)
 	pairFeed := make([]exchange.PairFeed, 0, len(config.AssetWeights))
 
-	for pair, _ := range config.AssetWeights {
+	for pair := range config.AssetWeights {
 		pairFeed = append(pairFeed, exchange.PairFeed{
 			Pair:      pair,
 			File:      fmt.Sprintf("testdata/%s-%s.csv", pair, strategy.Timeframe()),
@@ -86,7 +86,7 @@ func Run(config *models.Config) {
 	totalEquity := 0.0
 	fmt.Printf("REAL ASSETS VALUE\n")
 
-	for pair, _ := range strategy.AssetWeights {
+	for pair := range strategy.AssetWeights {
 		asset, _, err := wallet.Position(pair)
 		if err != nil {
 			log.Fatal(err)
