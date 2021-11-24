@@ -28,7 +28,7 @@ func Run(config *models.Config) {
 		Pairs: pairs,
 	}
 
-	strategy := strategies.NewDiamondHands(config.MinimumBalance, config.AssetWeights)
+	strategy := strategies.NewDCA(config.MinimumBalance, config.AssetWeights)
 	pairFeed := make([]exchange.PairFeed, 0, len(config.AssetWeights))
 
 	for pair := range config.AssetWeights {
