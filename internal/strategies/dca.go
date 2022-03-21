@@ -39,17 +39,17 @@ func (d DCA) Indicators(df *model.Dataframe) {
 func (d DCA) OnCandle(df *model.Dataframe, broker service.Broker) {
 	// Invest on fridays
 	if dayIn(int(df.LastUpdate.Weekday()), []int{5}) {
-		// Return total base coins
-		_, quotePosition, err := broker.Position(df.Pair)
-		if err != nil {
-			log.Error(err)
-			return
-		}
-
 		week := (df.LastUpdate.Day()-1)/7 + 1
 
 		// Do not count these weeks
 		if dayIn(week, []int{1, 3, 5}) {
+			return
+		}
+
+		// Return total base coins
+		_, quotePosition, err := broker.Position(df.Pair)
+		if err != nil {
+			log.Error(err)
 			return
 		}
 

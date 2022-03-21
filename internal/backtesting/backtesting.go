@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// TODO: Pass name of strategy and call it from a switch
 func Run(config *models.Config) {
 	var (
 		ctx   = context.Background()
