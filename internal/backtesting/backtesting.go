@@ -52,8 +52,8 @@ func Run(config *models.Config) {
 
 	wallet := exchange.NewPaperWallet(
 		ctx,
-		"USDT",
-		exchange.WithPaperAsset("USDT", 12000),
+		"BUSD",
+		exchange.WithPaperAsset("BUSD", 12000),
 		exchange.WithDataFeed(csvFeed),
 	)
 
@@ -94,17 +94,17 @@ func Run(config *models.Config) {
 		}
 
 		assetValue := asset * strategy.LastClose[pair]
-		fmt.Printf("%s = %.2f USDT\n", pair, assetValue)
+		fmt.Printf("%s = %.2f BUSD\n", pair, assetValue)
 		totalEquity += assetValue
 	}
 
-	_, quote, err := wallet.Position("BTCUSDT") // Any pair, we just get the available balance
+	_, quote, err := wallet.Position("BTCBUSD") // Any pair, we just get the available balance
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	totalEquity += quote
-	fmt.Printf("TOTAL EQUITY = %.2f USDT\n--------------\n", totalEquity)
+	fmt.Printf("TOTAL EQUITY = %.2f BUSD\n--------------\n", totalEquity)
 
 	// Display candlesticks chart in browser
 	err = chart.Start()

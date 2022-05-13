@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 )
 
-const usdSymbol = "USDT"
+const usdSymbol = "BUSD"
 
 var counter uint32
 

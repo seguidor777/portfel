@@ -57,7 +57,7 @@ func (d DCA) OnCandle(df *model.Dataframe, broker service.Broker) {
 		asset := math.Floor(d.AssetWeights[df.Pair]*deposit*100) / 100
 
 		if asset > quotePosition {
-			log.Errorf("free cash not enough, CASH = %.2f USDT", quotePosition)
+			log.Errorf("free cash not enough, CASH = %.2f BUSD", quotePosition)
 			return
 		}
 
