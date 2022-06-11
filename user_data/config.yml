@@ -1,4 +1,6 @@
+strategy: DiamondHands
 minimum_balance: 500
+expected_price_drop: 0.4
 asset_weights:
   BTCBUSD: 0.5
   ADABUSD: 0.1

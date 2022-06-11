@@ -10,36 +10,49 @@ import (
 	"sync/atomic"
 )
 
-type DiamondHands struct {
+type DCAOnSteroids struct {
 	D *models.StrategyData
 }
 
-func NewDiamondHands(config *models.Config) (*DiamondHands, error) {
+func NewDCAOnSteroids(config *models.Config) (*DCAOnSteroids, error) {
 	data, err := models.NewStrategyData(config)
 	if err != nil {
 		return nil, err
 	}
 
-	d := &DiamondHands{
+	d := &DCAOnSteroids{
 		D: data,
 	}
 
 	return d, nil
 }
 
-func (d DiamondHands) Timeframe() string {
+func (d DCAOnSteroids) Timeframe() string {
 	return "1d"
 }
 
-func (d DiamondHands) WarmupPeriod() int {
+func (d DCAOnSteroids) WarmupPeriod() int {
 	return 1
 }
 
-func (d DiamondHands) Indicators(df *model.Dataframe) {
+func (d DCAOnSteroids) Indicators(df *model.Dataframe) {
 	d.D.LastClose[df.Pair] = df.Close.Last(0)
+	d.D.LastHigh[df.Pair] = df.High.Last(0)
 }
 
-func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
+func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
+	// Trade on fridays
+	if !dayIn(int(df.LastUpdate.Weekday()), []int{5}) {
+		return
+	}
+
+	week := (df.LastUpdate.Day()-1)/7 + 1
+
+	// Do not count these weeks
+	if dayIn(week, []int{1, 3, 5}) {
+		return
+	}
+
 	// Trade as long there is available balance
 	account, err := broker.Account()
 	if err != nil {
@@ -59,18 +72,19 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
-	priceDrop, err := getPriceDrop(df.Pair)
-	if err != nil {
-		log.Error(err)
+	// Calculate ATH
+	if d.D.LastHigh[df.Pair] > d.D.ATHTest[df.Pair] {
+		d.D.ATHTest[df.Pair] = d.D.LastHigh[df.Pair]
+	}
+
+	athDelta := d.D.ATHTest[df.Pair] - d.D.LastClose[df.Pair]
+
+	if athDelta/d.D.ATHTest[df.Pair] < d.D.ExpectedPriceDrop {
 		return
 	}
 
-	if math.Abs(priceDrop/100) < d.D.ExpectedPriceDrop {
-		return
-	}
-
-	// Round to 2 decimals
-	asset := math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
+	deposit := 500.0 // Simulate deposit
+	asset := math.Floor(d.D.AssetWeights[df.Pair]*deposit*100) / 100
 
 	if d.D.Accumulation[df.Pair] > quotePosition {
 		log.Errorf("free cash not enough, CASH = %.2f BUSD", quotePosition)
@@ -85,6 +99,7 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
+	d.D.Volume[df.Pair] += d.D.Accumulation[df.Pair]
 	d.D.Accumulation[df.Pair] = 0.0 // Reset accumulation
 	atomic.AddUint32(&counter, 1)
 

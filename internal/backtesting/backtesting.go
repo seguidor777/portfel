@@ -14,6 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const walletAmount = 12000
+
 // TODO: Pass name of strategy and call it from a switch
 func Run(config *models.Config) {
 	var (
@@ -29,7 +31,11 @@ func Run(config *models.Config) {
 		Pairs: pairs,
 	}
 
-	strategy := strategies.NewDCA(config.MinimumBalance, config.AssetWeights)
+	strategy, err := strategies.NewDCAOnSteroids(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	pairFeed := make([]exchange.PairFeed, 0, len(config.AssetWeights))
 
 	for pair := range config.AssetWeights {
@@ -53,7 +59,7 @@ func Run(config *models.Config) {
 	wallet := exchange.NewPaperWallet(
 		ctx,
 		"BUSD",
-		exchange.WithPaperAsset("BUSD", 12000),
+		exchange.WithPaperAsset("BUSD", walletAmount),
 		exchange.WithDataFeed(csvFeed),
 	)
 
@@ -87,24 +93,28 @@ func Run(config *models.Config) {
 	totalEquity := 0.0
 	fmt.Printf("REAL ASSETS VALUE\n")
 
-	for pair := range strategy.AssetWeights {
+	for pair := range strategy.D.AssetWeights {
 		asset, _, err := wallet.Position(pair)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		assetValue := asset * strategy.LastClose[pair]
-		fmt.Printf("%s = %.2f BUSD\n", pair, assetValue)
+		assetValue := asset * strategy.D.LastClose[pair]
+		volume := strategy.D.Volume[pair]
+		profitPerc := (assetValue - volume) / volume * 100
+		fmt.Printf("%s = %.2f BUSD, Profit = %.2f%%\n", pair, assetValue, profitPerc)
 		totalEquity += assetValue
 	}
 
-	_, quote, err := wallet.Position("BTCBUSD") // Any pair, we just get the available balance
-	if err != nil {
-		log.Fatal(err)
+	totalVolume := 0.0
+
+	for _, volume := range strategy.D.Volume {
+		totalVolume += volume
 	}
 
-	totalEquity += quote
-	fmt.Printf("TOTAL EQUITY = %.2f BUSD\n--------------\n", totalEquity)
+	totalProfit := totalEquity - totalVolume
+	totalProfitPerc := totalProfit / totalVolume * 100
+	fmt.Printf("TOTAL EQUITY = %.2f BUSD, Profit = %.2f = %.2f%%\n--------------\n", totalEquity, totalProfit, totalProfitPerc)
 
 	// Display candlesticks chart in browser
 	err = chart.Start()

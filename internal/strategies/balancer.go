@@ -1,6 +1,7 @@
 package strategies
 
 import (
+	"github.com/seguidor777/portfel/internal/models"
 	"math"
 
 	"github.com/rodrigo-brito/ninjabot"
@@ -20,10 +21,10 @@ type Weight struct {
 	Weight float64
 }
 
-func NewBalancer(minimumBalance float64, assetWeights map[string]float64) *Balancer {
+func NewBalancer(config *models.Config) *Balancer {
 	b := &Balancer{
-		MinimumBalance: minimumBalance,
-		AssetWeights:   assetWeights,
+		MinimumBalance: config.MinimumBalance,
+		AssetWeights:   config.AssetWeights,
 		LastClose:      make(map[string]float64),
 	}
 
@@ -45,7 +46,7 @@ func (b Balancer) Indicators(df *model.Dataframe) {
 func (b Balancer) CalculatePositionAdjustment(df *ninjabot.Dataframe, broker service.Broker) (expect, diff float64, err error) {
 	totalEquity := 0.0
 
-	for p, _ := range b.AssetWeights {
+	for p := range b.AssetWeights {
 		asset, _, err := broker.Position(p)
 		if err != nil {
 			return 0, 0, err
@@ -109,5 +110,6 @@ func (b Balancer) OnCandle(df *model.Dataframe, broker service.Broker) {
 
 		// Buy more coins
 		_, err = broker.CreateOrderMarketQuote(ninjabot.SideTypeBuy, df.Pair, -diff)
+		log.Error(err)
 	}
 }

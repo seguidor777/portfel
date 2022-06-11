@@ -56,24 +56,31 @@ func Run(config *models.Config) {
 		exchange.WithDataFeed(binance),
 	)
 
-	// initializing my strategy
-	strategy := strategies.NewDiamondHands(config.MinimumBalance, config.AssetWeights)
+	// Initialize strategy and bot
+	switch config.Strategy {
+	case "DiamondHands":
+		strat, err := strategies.NewDiamondHands(config)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	// initializer ninjabot
-	bot, err := ninjabot.NewBot(
-		ctx,
-		settings,
-		paperWallet,
-		strategy,
-		ninjabot.WithStorage(storage),
-		ninjabot.WithPaperWallet(paperWallet),
-	)
-	if err != nil {
-		log.Fatalln(err)
-	}
+		bot, err := ninjabot.NewBot(
+			ctx,
+			settings,
+			paperWallet,
+			strat,
+			ninjabot.WithStorage(storage),
+			ninjabot.WithPaperWallet(paperWallet),
+		)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	err = bot.Run(ctx)
-	if err != nil {
-		log.Fatalln(err)
+		err = bot.Run(ctx)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	default:
+		log.Fatal("Invalid strategy")
 	}
 }
