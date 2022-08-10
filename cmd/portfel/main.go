@@ -33,7 +33,7 @@ func main() {
 		}
 
 		if *dryRun {
-			paperwallet.Run(config)
+			paperwallet.Run(config, databasePath)
 			return
 		}
 
@@ -45,7 +45,7 @@ func main() {
 			log.Fatalf("cannot read config file: %v", err)
 		}
 
-		backtesting.Run(config)
+		backtesting.Run(config, databasePath)
 	default:
 		fmt.Println("expected 'trade' or 'test' subcommands")
 		os.Exit(1)

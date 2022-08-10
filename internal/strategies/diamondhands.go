@@ -1,27 +1,33 @@
 package strategies
 
 import (
+	"fmt"
 	"github.com/rodrigo-brito/ninjabot"
 	"github.com/rodrigo-brito/ninjabot/model"
 	"github.com/rodrigo-brito/ninjabot/service"
+	"github.com/rodrigo-brito/ninjabot/strategy"
+	"github.com/seguidor777/portfel/internal/localkv"
 	"github.com/seguidor777/portfel/internal/models"
 	log "github.com/sirupsen/logrus"
 	"math"
+	"strconv"
 	"sync/atomic"
 )
 
 type DiamondHands struct {
-	D *models.StrategyData
+	D  *models.StrategyData
+	kv *localkv.LocalKV
 }
 
-func NewDiamondHands(config *models.Config) (*DiamondHands, error) {
+func NewDiamondHands(config *models.Config, kv *localkv.LocalKV) (*DiamondHands, error) {
 	data, err := models.NewStrategyData(config)
 	if err != nil {
 		return nil, err
 	}
 
 	d := &DiamondHands{
-		D: data,
+		D:  data,
+		kv: kv,
 	}
 
 	return d, nil
@@ -35,8 +41,10 @@ func (d DiamondHands) WarmupPeriod() int {
 	return 1
 }
 
-func (d DiamondHands) Indicators(df *model.Dataframe) {
+func (d DiamondHands) Indicators(df *model.Dataframe) []strategy.ChartIndicator {
 	d.D.LastClose[df.Pair] = df.Close.Last(0)
+
+	return []strategy.ChartIndicator{}
 }
 
 func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
@@ -65,27 +73,48 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
+	accVal, err := d.kv.Get(fmt.Sprintf("%s-acc", df.Pair))
+	if err != nil {
+		if err.Error() != notFoundErr {
+			log.Error(err)
+			return
+		}
+
+		accVal = "0.0"
+	}
+
+	acc, err := strconv.ParseFloat(accVal, 64)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
 	if math.Abs(priceDrop/100) < d.D.ExpectedPriceDrop {
+		if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), fmt.Sprintf("%f", acc)); err != nil {
+			log.Error(err)
+			return
+		}
+
+		log.Warnf("%.2f USD accumulated for %s", acc, df.Pair)
 		return
 	}
 
 	// Round to 2 decimals
 	asset := math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
 
-	if d.D.Accumulation[df.Pair] > quotePosition {
-		log.Errorf("free cash not enough, CASH = %.2f BUSD", quotePosition)
-		return
-	}
-
 	// Buy more coins
-	d.D.Accumulation[df.Pair] += asset
-	_, err = broker.CreateOrderMarketQuote(ninjabot.SideTypeBuy, df.Pair, d.D.Accumulation[df.Pair])
+	acc += asset
+	_, err = broker.CreateOrderMarketQuote(ninjabot.SideTypeBuy, df.Pair, acc)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
-	d.D.Accumulation[df.Pair] = 0.0 // Reset accumulation
+	// Reset accumulation
+	if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), "0.0"); err != nil {
+		log.Error(err)
+		return
+	}
 	atomic.AddUint32(&counter, 1)
 
 	// If diversification has been completed then reset stakes

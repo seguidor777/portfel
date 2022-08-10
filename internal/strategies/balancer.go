@@ -1,6 +1,7 @@
 package strategies
 
 import (
+	"github.com/rodrigo-brito/ninjabot/strategy"
 	"github.com/seguidor777/portfel/internal/models"
 	"math"
 
@@ -39,8 +40,10 @@ func (b Balancer) WarmupPeriod() int {
 	return 1
 }
 
-func (b Balancer) Indicators(df *model.Dataframe) {
+func (b Balancer) Indicators(df *model.Dataframe) []strategy.ChartIndicator {
 	b.LastClose[df.Pair] = df.Close.Last(0)
+
+	return []strategy.ChartIndicator{}
 }
 
 func (b Balancer) CalculatePositionAdjustment(df *ninjabot.Dataframe, broker service.Broker) (expect, diff float64, err error) {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gopkg.in/resty.v0"
+	"github.com/go-resty/resty/v2"
 	"strings"
 )
 
@@ -23,7 +23,6 @@ type StrategyData struct {
 	LastClose         map[string]float64
 	LastHigh          map[string]float64
 	AssetStake        map[string]float64
-	Accumulation      map[string]float64
 	Volume            map[string]float64
 	ATHTest           map[string]float64
 	Slugs             map[string]string
@@ -42,7 +41,6 @@ func NewStrategyData(config *Config) (*StrategyData, error) {
 		LastClose:         make(map[string]float64),
 		LastHigh:          make(map[string]float64),
 		AssetStake:        make(map[string]float64),
-		Accumulation:      make(map[string]float64),
 		Volume:            make(map[string]float64),
 		ATHTest: map[string]float64{
 			"BTCBUSD":   64637.0,
@@ -62,7 +60,7 @@ func NewStrategyData(config *Config) (*StrategyData, error) {
 			"AUDIOBUSD": 4.996,
 		},
 		// ATH on apr 14th
-		// ATHTest: map[string]float64{
+		//ATHTest: map[string]float64{
 		//	"BTCBUSD":   68972.0,
 		//	"ADABUSD":   3.1016,
 		//	"ETHBUSD":   4886.0,
@@ -85,13 +83,13 @@ func NewStrategyData(config *Config) (*StrategyData, error) {
 
 // Get the slug (coin ID) values for each of the assets in the map
 func getSlugs(assetWeights map[string]float64) (map[string]string, error) {
-	resp, err := resty.R().
+	resp, err := resty.New().R().
 		Get("https://api.coingecko.com/api/v3/coins/list")
 	if err != nil {
 		return nil, err
 	}
 	var jsonResp []map[string]string
-	json.Unmarshal(resp.Body, &jsonResp)
+	json.Unmarshal(resp.Body(), &jsonResp)
 	if len(jsonResp) == 0 {
 		return nil, errors.New(noCoinsListErr)
 	}

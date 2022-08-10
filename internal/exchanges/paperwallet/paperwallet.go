@@ -2,6 +2,7 @@ package paperwallet
 
 import (
 	"context"
+	"github.com/seguidor777/portfel/internal/localkv"
 	"github.com/seguidor777/portfel/internal/models"
 	"os"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Run(config *models.Config) {
+func Run(config *models.Config, databasePath *string) {
 	var (
 		ctx             = context.Background()
 		telegramToken   = os.Getenv("TELEGRAM_TOKEN")
@@ -56,10 +57,16 @@ func Run(config *models.Config) {
 		exchange.WithDataFeed(binance),
 	)
 
+	// initialize local KV store for strategies
+	kv, err := localkv.NewLocalKV(*databasePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Initialize strategy and bot
 	switch config.Strategy {
 	case "DiamondHands":
-		strat, err := strategies.NewDiamondHands(config)
+		strat, err := strategies.NewDiamondHands(config, kv)
 		if err != nil {
 			log.Fatal(err)
 		}

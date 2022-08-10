@@ -3,6 +3,7 @@ package backtesting
 import (
 	"context"
 	"fmt"
+	"github.com/seguidor777/portfel/internal/localkv"
 	"github.com/seguidor777/portfel/internal/models"
 
 	"github.com/rodrigo-brito/ninjabot"
@@ -17,7 +18,7 @@ import (
 const walletAmount = 12000
 
 // TODO: Pass name of strategy and call it from a switch
-func Run(config *models.Config) {
+func Run(config *models.Config, databasePath *string) {
 	var (
 		ctx   = context.Background()
 		pairs = make([]string, 0, len(config.AssetWeights))
@@ -31,7 +32,13 @@ func Run(config *models.Config) {
 		Pairs: pairs,
 	}
 
-	strategy, err := strategies.NewDCAOnSteroids(config)
+	// initialize local KV store for strategies
+	kv, err := localkv.NewLocalKV(*databasePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	strategy, err := strategies.NewDCAOnSteroids(config, kv)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,6 +95,8 @@ func Run(config *models.Config) {
 		log.Fatal(err)
 	}
 
+	kv.RemoveDB()
+
 	// Print bot results
 	bot.Summary()
 	totalEquity := 0.0
@@ -102,7 +111,7 @@ func Run(config *models.Config) {
 		assetValue := asset * strategy.D.LastClose[pair]
 		volume := strategy.D.Volume[pair]
 		profitPerc := (assetValue - volume) / volume * 100
-		fmt.Printf("%s = %.2f BUSD, Profit = %.2f%%\n", pair, assetValue, profitPerc)
+		fmt.Printf("%s = %.2f BUSD, Asset Qty = %f, Profit = %.2f%%\n", pair, assetValue, asset, profitPerc)
 		totalEquity += assetValue
 	}
 
