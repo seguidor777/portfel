@@ -67,7 +67,7 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
-	priceDrop, err := getPriceDrop(df.Pair)
+	priceDrop, err := getPriceDrop(d.D.Slugs[df.Pair])
 	if err != nil {
 		log.Error(err)
 		return
