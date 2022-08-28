@@ -49,16 +49,30 @@ func (d DCAOnSteroids) Indicators(df *model.Dataframe) []strategy.ChartIndicator
 }
 
 func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
-	// Trade on thursdays
-	if !dayIn(int(df.LastUpdate.Weekday()), []int{4}) {
-		return
+	accVal, err := d.kv.Get(fmt.Sprintf("%s-acc", df.Pair))
+	if err != nil {
+		if err.Error() != notFoundErr {
+			log.Error(err)
+		}
+
+		accVal = "0.0"
 	}
 
-	week := (df.LastUpdate.Day()-1)/7 + 1
+	acc, _ := strconv.ParseFloat(accVal, 64)
 
-	// Do not count these weeks
-	if dayIn(week, []int{1, 3, 5}) {
-		return
+	// If there is no accumulation
+	if acc == 0.0 {
+		// Trade on thursdays
+		if !dayIn(int(df.LastUpdate.Weekday()), []int{4}) {
+			return
+		}
+
+		week := (df.LastUpdate.Day()-1)/7 + 1
+
+		// Do not count these weeks
+		if dayIn(week, []int{1, 3, 5}) {
+			return
+		}
 	}
 
 	// Trade as long there is available balance
@@ -75,12 +89,12 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 		quotePosition += stake
 	}
 
-	if quotePosition < d.D.MinimumBalance {
-		log.Error("The balance is below the minimum")
+	if quotePosition < d.D.MinimumBalance && acc == 0.0 {
+		log.Errorf("The balance is below the minimum and there is no accumulation for %s", df.Pair)
 		return
 	}
 
-	deposit := 500.0 // Simulate deposit
+	deposit := d.D.MinimumBalance // Simulate deposit
 	asset := math.Floor(d.D.AssetWeights[df.Pair]*deposit*100) / 100
 
 	// Calculate ATH
@@ -89,22 +103,6 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	athDelta := d.D.ATHTest[df.Pair] - d.D.LastClose[df.Pair]
-	accVal, err := d.kv.Get(fmt.Sprintf("%s-acc", df.Pair))
-	if err != nil {
-		if err.Error() != notFoundErr {
-			log.Error(err)
-			return
-		}
-
-		accVal = "0.0"
-	}
-
-	acc, err := strconv.ParseFloat(accVal, 64)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
 	acc += asset
 
 	if athDelta/d.D.ATHTest[df.Pair] < d.D.ExpectedPriceDrop {
@@ -114,6 +112,11 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 		}
 
 		log.Warnf("%.2f USD accumulated for %s", acc, df.Pair)
+		return
+	}
+
+	if acc > quotePosition {
+		log.Errorf("free cash not enough, CASH = %.2f USDT", quotePosition)
 		return
 	}
 
