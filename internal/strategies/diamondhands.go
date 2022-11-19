@@ -19,6 +19,7 @@ type DiamondHands struct {
 	kv *localkv.LocalKV
 }
 
+// NewDiamondHands is used in trade real and dry-run. It never sells
 func NewDiamondHands(config *models.Config, kv *localkv.LocalKV) (*DiamondHands, error) {
 	data, err := models.NewStrategyData(config)
 	if err != nil {
@@ -55,8 +56,8 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
-	balance := account.Balance(models.USDSymbol)
-	quotePosition := balance.Free
+	_, quoteBalance := account.Balance("", models.USDSymbol)
+	quotePosition := quoteBalance.Free
 
 	accVal, err := d.kv.Get(fmt.Sprintf("%s-acc", df.Pair))
 	if err != nil {

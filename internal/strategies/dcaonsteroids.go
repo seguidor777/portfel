@@ -19,6 +19,7 @@ type DCAOnSteroids struct {
 	kv *localkv.LocalKV
 }
 
+// NewDCAOnSteroids is used for backtesting
 func NewDCAOnSteroids(config *models.Config, kv *localkv.LocalKV) (*DCAOnSteroids, error) {
 	data, err := models.NewStrategyData(config)
 	if err != nil {
@@ -82,8 +83,8 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
-	balance := account.Balance(models.USDSymbol)
-	quotePosition := balance.Free
+	_, quoteBalance := account.Balance("", models.USDSymbol)
+	quotePosition := quoteBalance.Free
 
 	for _, stake := range d.D.AssetStake {
 		quotePosition += stake

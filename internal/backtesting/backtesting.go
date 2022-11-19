@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const walletAmount = 12000
+const walletAmount = 7000
 
 // TODO: Pass name of strategy and call it from a switch
 func Run(config *models.Config, databasePath *string) {
