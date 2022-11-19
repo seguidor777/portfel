@@ -14,7 +14,7 @@ services:
     command: >
       trade
       --config /usr/share/portfel/config.yml
-      --database /usr/share/portfel/trades.db
+      --database /usr/share/portfel/db
     logging:
       driver: "json-file"
       options:
