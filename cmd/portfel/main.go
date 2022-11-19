@@ -10,11 +10,12 @@ import (
 	"os"
 )
 
+var databasePath = "user_data/db"
+
 func main() {
 	tradeCmd := flag.NewFlagSet("trade", flag.ExitOnError)
 	dryRun := tradeCmd.Bool("dry-run", false, "Trade in dry-run mode")
 	tradeConfigPath := tradeCmd.String("config", "user_data/config.yml", "Configuration file path")
-	databasePath := tradeCmd.String("database", "user_data/trades.db", "Database path")
 
 	testCmd := flag.NewFlagSet("test", flag.ExitOnError)
 	testConfigPath := testCmd.String("config", "user_data/config.yml", "Configuration file path")
@@ -33,11 +34,11 @@ func main() {
 		}
 
 		if *dryRun {
-			paperwallet.Run(config, databasePath)
+			paperwallet.Run(config, &databasePath)
 			return
 		}
 
-		binance.Run(config, databasePath)
+		binance.Run(config, &databasePath)
 	case "test":
 		testCmd.Parse(os.Args[2:])
 		config, err := readConfig(testConfigPath)
@@ -45,7 +46,7 @@ func main() {
 			log.Fatalf("cannot read config file: %v", err)
 		}
 
-		backtesting.Run(config, databasePath)
+		backtesting.Run(config, &databasePath)
 	default:
 		fmt.Println("expected 'trade' or 'test' subcommands")
 		os.Exit(1)

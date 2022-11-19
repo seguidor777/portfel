@@ -10,6 +10,7 @@ import (
 	"github.com/seguidor777/portfel/internal/strategies"
 	"log"
 	"os"
+	"path"
 	"strconv"
 )
 
@@ -37,7 +38,7 @@ func Run(config *models.Config, databasePath *string) {
 	}
 
 	// creating a storage to save trades
-	storage, err := storage.FromFile(*databasePath)
+	storage, err := storage.FromFile(path.Join(*databasePath, "trades.db"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,7 +51,7 @@ func Run(config *models.Config, databasePath *string) {
 	}
 
 	// initialize local KV store for strategies
-	kv, err := localkv.NewLocalKV(*databasePath)
+	kv, err := localkv.NewLocalKV(databasePath)
 	if err != nil {
 		log.Fatal(err)
 	}

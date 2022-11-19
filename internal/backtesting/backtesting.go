@@ -33,7 +33,7 @@ func Run(config *models.Config, databasePath *string) {
 	}
 
 	// initialize local KV store for strategies
-	kv, err := localkv.NewLocalKV(*databasePath)
+	kv, err := localkv.NewLocalKV(databasePath)
 	if err != nil {
 		log.Fatal(err)
 	}

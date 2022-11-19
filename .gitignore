@@ -7,5 +7,5 @@
 # Pair feeds
 testdata/*.csv
 
-# Trades database
-user_data/trades.db
+# Databases
+user_data/db/*.db

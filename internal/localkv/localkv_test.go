@@ -4,10 +4,10 @@ import (
 	"testing"
 )
 
-const databasePath = "../../user_data/test.db"
+var databasePath = "../../user_data"
 
 func TestLocalKV(t *testing.T) {
-	kv, err := NewLocalKV(databasePath)
+	kv, err := NewLocalKV(&databasePath)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -3,24 +3,26 @@ package localkv
 import (
 	"github.com/tidwall/buntdb"
 	"os"
+	"path"
 )
 
 // LocalKV Structure to hold the db client
 type LocalKV struct {
-	db   *buntdb.DB
-	path string
+	db     *buntdb.DB
+	dbPath string
 }
 
 // NewLocalKV constructor for the db client
-func NewLocalKV(databasePath string) (*LocalKV, error) {
-	db, err := buntdb.Open(databasePath)
+func NewLocalKV(databasePath *string) (*LocalKV, error) {
+	dbPath := path.Join(*databasePath, "kv.db")
+	db, err := buntdb.Open(dbPath)
 	if err != nil {
 		return nil, err
 	}
 
 	return &LocalKV{
-		db:   db,
-		path: databasePath,
+		db:     db,
+		dbPath: dbPath,
 	}, nil
 }
 
@@ -57,5 +59,5 @@ func (l *LocalKV) Set(key, value string) error {
 
 // RemoveDB removes db file
 func (l *LocalKV) RemoveDB() error {
-	return os.Remove(l.path)
+	return os.Remove(l.dbPath)
 }
