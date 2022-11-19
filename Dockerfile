@@ -1,4 +1,4 @@
-FROM golang:alpine as builder
+FROM golang:1.19.3 as builder
 
 WORKDIR /go/src/github.com/seguidor777/portfel
 
