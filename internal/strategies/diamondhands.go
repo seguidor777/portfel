@@ -75,7 +75,7 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	if quotePosition < d.D.MinimumBalance && acc == 0.0 {
-		log.Errorf("The balance is below the minimum and there is no accumulation for %s", df.Pair)
+		log.Errorf("Balance is below the minimum and there is no accumulation for %s", df.Pair)
 		return
 	}
 

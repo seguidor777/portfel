@@ -1,7 +1,6 @@
-version: '3'
 services:
   portfel:
-    image: portfel
+    image: 038824004049.dkr.ecr.us-west-2.amazonaws.com/portfel
     restart: unless-stopped
     container_name: portfel
     volumes:
