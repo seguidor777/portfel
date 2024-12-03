@@ -9,12 +9,28 @@ import (
 )
 
 const (
-	USDSymbol       = "BUSD"
+	USDSymbol       = "USDT"
 	coinNotFoundErr = "coin symbol \"%s\" not found"
 	noCoinsListErr  = "no coins list in the JSON response"
 )
 
-var slugsBlacklist = [...]string{"san-diego-coin"}
+var coningeckoSlugs = map[string]string{
+	"ADA":  "cardano",
+	"AVAX": "avalanche-2",
+	"BNB":  "binancecoin",
+	"BTC":  "bitcoin",
+	"DOT":  "polkadot",
+	"ETH":  "ethereum",
+	"HBAR": "hedera-hashgraph",
+	"LINK": "chainlink",
+	"SOL":  "solana",
+	"SUI":  "sui",
+	"TON":  "the-open-network",
+	"TRX":  "tron",
+	"UNI":  "uniswap",
+	"XLM":  "stellar",
+	"XRP":  "ripple",
+}
 
 type StrategyData struct {
 	MinimumBalance    float64
@@ -42,42 +58,24 @@ func NewStrategyData(config *Config) (*StrategyData, error) {
 		LastHigh:          make(map[string]float64),
 		AssetStake:        make(map[string]float64),
 		Volume:            make(map[string]float64),
-		// ATH on apr 14th
-		ATHTest: map[string]float64{
-			"BTCBUSD":   64637.0,
-			"ADABUSD":   1.56,
-			"ETHBUSD":   2447.04,
-			"SOLBUSD":   29.95,
-			"BNBBUSD":   638.6,
-			"DOTBUSD":   46.77,
-			"AVAXBUSD":  59.74,
-			"LINKBUSD":  42.05,
-			"FTMBUSD":   0,
-			"MATICBUSD": 0.5436,
-			"ROSEBUSD":  0.24855,
-			"MANABUSD":  1.214,
-			"SANDBUSD":  0.9048,
-			"NEARBUSD":  7.59,
-			"AUDIOBUSD": 4.996,
-		},
 		// Last ATH
-		//ATHTest: map[string]float64{
-		//	"BTCBUSD":   68972.0,
-		//	"ADABUSD":   3.1016,
-		//	"ETHBUSD":   4886.0,
-		//	"SOLBUSD":   259.0,
-		//	"BNBBUSD":   692.2,
-		//	"DOTBUSD":   55.0,
-		//	"AVAXBUSD":  146.76,
-		//	"LINKBUSD":  53.08,
-		//	"FTMBUSD":   3.4937,
-		//	"MATICBUSD": 2.918,
-		//	"ROSEBUSD":  0.5981,
-		//	"MANABUSD":  5.9118,
-		//	"SANDBUSD":  8.4765,
-		//	"NEARBUSD":  20.605,
-		//	"AUDIOBUSD": 4.996,
-		//},
+		ATHTest: map[string]float64{
+			"BTCUSDT":  68972.0,
+			"ADAUSDT":  3.1016,
+			"ETHUSDT":  4886.0,
+			"SOLUSDT":  259.0,
+			"BNBUSDT":  692.2,
+			"XRPUSDT":  1.9706,
+			"DOTUSDT":  55.0,
+			"UNIUSDT":  44.357,
+			"AVAXUSDT": 146.76,
+			"LINKUSDT": 53.08,
+			"TRXUSDT":  0.1803,
+			"TONUSDT":  10.0,
+			"HBARUSDT": 0.57512,
+			"XLMUSDT":  0.797,
+			"SUIUSDT":  10.0,
+		},
 		Slugs: slugs,
 	}, nil
 }
@@ -99,36 +97,13 @@ func getSlugs(assetWeights map[string]float64) (map[string]string, error) {
 
 	for pair := range assetWeights {
 		symbol := strings.Split(pair, USDSymbol)[0]
-		slug, err := getSlug(strings.ToLower(symbol), jsonResp)
-		if err != nil {
-			return slugs, err
-		}
 
-		slugs[pair] = slug
+		if slug, ok := coningeckoSlugs[symbol]; ok {
+			slugs[pair] = slug
+		} else {
+			return nil, fmt.Errorf(coinNotFoundErr, symbol)
+		}
 	}
 
 	return slugs, nil
-}
-
-// Gets the slug for the given symbol
-// Discards any slug if it has the binance-peg prefix or is blacklisted
-func getSlug(symbol string, jsonResp []map[string]string) (string, error) {
-	for _, coin := range jsonResp {
-		if symbol == coin["symbol"] && !strings.HasPrefix(coin["id"], "binance-peg") && !isBlacklisted(coin["id"]) {
-			return coin["id"], nil
-		}
-	}
-
-	return "", fmt.Errorf(coinNotFoundErr, symbol)
-}
-
-// Verifies if a given slug is blacklisted
-func isBlacklisted(slug string) bool {
-	for _, s := range slugsBlacklist {
-		if slug == s {
-			return true
-		}
-	}
-
-	return false
 }

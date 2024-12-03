@@ -1,4 +1,7 @@
-FROM golang:1.19.3 as builder
+FROM --platform=$BUILDPLATFORM golang:1.19.3 as builder
+
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /go/src/github.com/seguidor777/portfel
 
@@ -6,7 +9,7 @@ COPY go.mod go.sum ./
 COPY cmd cmd
 COPY internal internal
 
-RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /bin/portfel github.com/seguidor777/portfel/cmd/portfel
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} CGO_ENABLED=0 go build -ldflags="-w -s" -o /bin/portfel github.com/seguidor777/portfel/cmd/portfel
 RUN mkdir -p /usr/share/portfel
 
 FROM scratch

@@ -85,6 +85,10 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
+	// Round to 2 decimals
+	assetStake := math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
+	acc += assetStake
+
 	if math.Abs(priceDrop/100) < d.D.ExpectedPriceDrop {
 		if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), fmt.Sprintf("%f", acc)); err != nil {
 			log.Error(err)
@@ -94,10 +98,6 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		log.Warnf("%.2f USD accumulated for %s", acc, df.Pair)
 		return
 	}
-
-	// Round to 2 decimals
-	asset := math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
-	acc += asset
 
 	if acc > quotePosition {
 		log.Errorf("free cash not enough, CASH = %.2f USDT", quotePosition)
@@ -116,18 +116,21 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		log.Error(err)
 		return
 	}
-	atomic.AddUint32(&counter, 1)
 
-	// If diversification has been completed then reset stakes
-	if int(atomic.LoadUint32(&counter)) == len(d.D.AssetWeights) {
-		for pair := range d.D.AssetStake {
-			d.D.AssetStake[pair] = 0.0
+	if assetStake > 0 {
+		atomic.AddUint32(&counter, 1)
+
+		// If diversification has been completed then reset stakes
+		if int(atomic.LoadUint32(&counter)) == len(d.D.AssetWeights) {
+			for pair := range d.D.AssetStake {
+				d.D.AssetStake[pair] = 0.0
+			}
+
+			atomic.CompareAndSwapUint32(&counter, counter, 0)
+			return
 		}
 
-		atomic.CompareAndSwapUint32(&counter, counter, 0)
-		return
+		// Save asset stake for further calculation
+		d.D.AssetStake[df.Pair] = assetStake
 	}
-
-	// Save asset stake for further calculation
-	d.D.AssetStake[df.Pair] = asset
 }

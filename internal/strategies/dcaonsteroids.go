@@ -60,43 +60,16 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	acc, _ := strconv.ParseFloat(accVal, 64)
+	week := (df.LastUpdate.Day()-1)/7 + 1
+	deposit := 0.0
 
-	// If there is no accumulation
-	if acc == 0.0 {
-		// Trade on thursdays
-		if !dayIn(int(df.LastUpdate.Weekday()), []int{4}) {
-			return
-		}
-
-		week := (df.LastUpdate.Day()-1)/7 + 1
-
-		// Do not count these weeks
-		if dayIn(week, []int{1, 3, 5}) {
-			return
-		}
+	if dayIn(int(df.LastUpdate.Weekday()), []int{5}) && dayIn(week, []int{1, 3, 5}) {
+		deposit = d.D.MinimumBalance
 	}
 
-	// Trade as long there is available balance
-	account, err := broker.Account()
-	if err != nil {
-		log.Error(err)
+	if deposit == 0.0 && acc == 0.0 {
 		return
 	}
-
-	_, quoteBalance := account.Balance("", models.USDSymbol)
-	quotePosition := quoteBalance.Free
-
-	for _, stake := range d.D.AssetStake {
-		quotePosition += stake
-	}
-
-	if quotePosition < d.D.MinimumBalance && acc == 0.0 {
-		log.Errorf("The balance is below the minimum and there is no accumulation for %s", df.Pair)
-		return
-	}
-
-	deposit := d.D.MinimumBalance // Simulate deposit
-	asset := math.Floor(d.D.AssetWeights[df.Pair]*deposit*100) / 100
 
 	// Calculate ATH
 	if d.D.LastHigh[df.Pair] > d.D.ATHTest[df.Pair] {
@@ -104,7 +77,9 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	athDelta := d.D.ATHTest[df.Pair] - d.D.LastClose[df.Pair]
-	acc += asset
+	// Round to 2 decimals
+	assetStake := math.Floor(d.D.AssetWeights[df.Pair]*deposit*100) / 100
+	acc += assetStake
 
 	if athDelta/d.D.ATHTest[df.Pair] < d.D.ExpectedPriceDrop {
 		if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), fmt.Sprintf("%f", acc)); err != nil {
@@ -113,11 +88,6 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 		}
 
 		log.Warnf("%.2f USD accumulated for %s", acc, df.Pair)
-		return
-	}
-
-	if acc > quotePosition {
-		log.Errorf("free cash not enough, CASH = %.2f USDT", quotePosition)
 		return
 	}
 
@@ -136,18 +106,20 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
-	atomic.AddUint32(&counter, 1)
+	if assetStake > 0 {
+		atomic.AddUint32(&counter, 1)
 
-	// If diversification has been completed then reset stakes
-	if int(atomic.LoadUint32(&counter)) == len(d.D.AssetWeights) {
-		for pair := range d.D.AssetStake {
-			d.D.AssetStake[pair] = 0.0
+		// If diversification has been completed then reset stakes
+		if int(atomic.LoadUint32(&counter)) == len(d.D.AssetWeights) {
+			for pair := range d.D.AssetStake {
+				d.D.AssetStake[pair] = 0.0
+			}
+
+			atomic.CompareAndSwapUint32(&counter, counter, 0)
+			return
 		}
 
-		atomic.CompareAndSwapUint32(&counter, counter, 0)
-		return
+		// Save asset stake for further calculation
+		d.D.AssetStake[df.Pair] = assetStake
 	}
-
-	// Save asset stake for further calculation
-	d.D.AssetStake[df.Pair] = asset
 }

@@ -51,9 +51,9 @@ func Run(config *models.Config, databasePath *string) {
 	// creating a paper wallet to simulate an exchange waller for fake operations
 	paperWallet := exchange.NewPaperWallet(
 		ctx,
-		"BUSD",
+		"USDT",
 		exchange.WithPaperFee(0.001, 0.001),
-		exchange.WithPaperAsset("BUSD", 500),
+		exchange.WithPaperAsset("USDT", 500),
 		exchange.WithDataFeed(binance),
 	)
 

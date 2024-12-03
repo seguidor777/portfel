@@ -1,5 +1,5 @@
 strategy: DiamondHands
-minimum_balance: 500
+minimum_balance: 250
 expected_price_drop: 0.4
 asset_weights:
   BTCUSDT: 0.5
@@ -7,13 +7,13 @@ asset_weights:
   ETHUSDT: 0.07
   SOLUSDT: 0.05
   BNBUSDT: 0.05
-  DOTUSDT: 0.03
+  XRPUSDT: 0.03
+  DOTUSDT: 0.025
+  UNIUSDT: 0.025
   AVAXUSDT: 0.025
   LINKUSDT: 0.025
-  FTMUSDT: 0.025
-  MATICUSDT: 0.025
-  ROSEUSDT: 0.02
-  MANAUSDT: 0.02
-  SANDUSDT: 0.02
-  NEARUSDT: 0.02
   TRXUSDT: 0.02
+  TONUSDT: 0.02
+  HBARUSDT: 0.02
+  XLMUSDT: 0.02
+  SUIUSDT: 0.02

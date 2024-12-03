@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const walletAmount = 7000
+const walletAmount = 6000
 
 // TODO: Pass name of strategy and call it from a switch
 func Run(config *models.Config, databasePath *string) {
@@ -65,8 +65,8 @@ func Run(config *models.Config, databasePath *string) {
 
 	wallet := exchange.NewPaperWallet(
 		ctx,
-		"BUSD",
-		exchange.WithPaperAsset("BUSD", walletAmount),
+		"USDT",
+		exchange.WithPaperAsset("USDT", walletAmount),
 		exchange.WithDataFeed(csvFeed),
 	)
 
@@ -111,7 +111,7 @@ func Run(config *models.Config, databasePath *string) {
 		assetValue := asset * strategy.D.LastClose[pair]
 		volume := strategy.D.Volume[pair]
 		profitPerc := (assetValue - volume) / volume * 100
-		fmt.Printf("%s = %.2f BUSD, Asset Qty = %f, Profit = %.2f%%\n", pair, assetValue, asset, profitPerc)
+		fmt.Printf("%s = %.2f USDT, Asset Qty = %f, Profit = %.2f%%\n", pair, assetValue, asset, profitPerc)
 		totalEquity += assetValue
 	}
 
@@ -123,7 +123,7 @@ func Run(config *models.Config, databasePath *string) {
 
 	totalProfit := totalEquity - totalVolume
 	totalProfitPerc := totalProfit / totalVolume * 100
-	fmt.Printf("TOTAL EQUITY = %.2f BUSD, Profit = %.2f = %.2f%%\n--------------\n", totalEquity, totalProfit, totalProfitPerc)
+	fmt.Printf("TOTAL EQUITY = %.2f USDT, Profit = %.2f = %.2f%%\n--------------\n", totalEquity, totalProfit, totalProfitPerc)
 
 	// Display candlesticks chart in browser
 	err = chart.Start()

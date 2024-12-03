@@ -107,7 +107,7 @@ func (b Balancer) OnCandle(df *model.Dataframe, broker service.Broker) {
 		}
 
 		if diff > quotePosition {
-			log.Errorf("free cash not enough, DIFF = %.2f BUSD, CASH = %.2f BUSD", diff, quotePosition)
+			log.Errorf("free cash not enough, DIFF = %.2f USDT, CASH = %.2f USDT", diff, quotePosition)
 			return
 		}
 

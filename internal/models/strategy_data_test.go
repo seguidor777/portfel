@@ -6,21 +6,21 @@ import (
 )
 
 var assetWeights = map[string]float64{
-	"BTCBUSD":   0.5,
-	"ADABUSD":   0.1,
-	"ETHBUSD":   0.07,
-	"SOLBUSD":   0.05,
-	"BNBBUSD":   0.05,
-	"DOTBUSD":   0.03,
-	"AVAXBUSD":  0.025,
-	"LINKBUSD":  0.025,
-	"FTMBUSD":   0.025,
-	"MATICBUSD": 0.025,
-	"ROSEBUSD":  0.02,
-	"MANABUSD":  0.02,
-	"SANDBUSD":  0.02,
-	"GALABUSD":  0.02,
-	"AUDIOBUSD": 0.02,
+	"BTCUSDT":  0.5,
+	"ADAUSDT":  0.1,
+	"ETHUSDT":  0.07,
+	"SOLUSDT":  0.05,
+	"BNBUSDT":  0.05,
+	"XRPUSDT":  0.03,
+	"DOTUSDT":  0.025,
+	"UNIUSDT":  0.025,
+	"AVAXUSDT": 0.025,
+	"LINKUSDT": 0.025,
+	"TRXUSDT":  0.02,
+	"TONUSDT":  0.02,
+	"HBARUSDT": 0.02,
+	"XLMUSDT":  0.02,
+	"SUIUSDT":  0.02,
 }
 
 // TestGetSlugs tests getSlugs function
@@ -37,8 +37,8 @@ func TestGetSlugs(t *testing.T) {
 
 // TestGetSlugsErr tests getPriceDrop function and expects an error
 func TestGetSlugsErr(t *testing.T) {
-	delete(assetWeights, "BTCBUSD")
-	assetWeights["@@@BUSD"] = 0.5
+	delete(assetWeights, "BTCUSDT")
+	assetWeights["@@@USDT"] = 0.5
 	_, err := getSlugs(assetWeights)
 
 	if err == nil {
