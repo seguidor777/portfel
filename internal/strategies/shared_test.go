@@ -7,9 +7,13 @@ import (
 
 // TestGetPriceDrop tests getPriceDrop function
 func TestGetPriceDrop(t *testing.T) {
-	_, err := getPriceDrop("bitcoin")
-	if err != nil {
-		t.Fatal(err)
+	slugs := []string{"bitcoin", "cardano", "ethereum", "solana", "binancecoin", "ripple"}
+
+	for _, slug := range slugs {
+		_, err := getPriceDrop(slug)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
