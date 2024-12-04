@@ -1,5 +1,5 @@
 strategy: DiamondHands
-minimum_balance: 250
+minimum_balance: 500
 expected_price_drop: 0.4
 asset_weights:
   BTCUSDT: 0.5

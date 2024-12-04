@@ -63,7 +63,7 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	week := (df.LastUpdate.Day()-1)/7 + 1
 	deposit := 0.0
 
-	if dayIn(int(df.LastUpdate.Weekday()), []int{5}) && dayIn(week, []int{1, 3, 5}) {
+	if dayIn(int(df.LastUpdate.Weekday()), []int{5}) && dayIn(week, []int{2}) {
 		deposit = d.D.MinimumBalance
 	}
 
