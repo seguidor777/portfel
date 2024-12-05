@@ -10,6 +10,7 @@ services:
       - BINANCE_SECRET_KEY=${BINANCE_SECRET_KEY}
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - TELEGRAM_USER=${TELEGRAM_USER}
+      - COINGECKO_API_KEY=${COINGECKO_API_KEY}
     command: >
       trade
       --config /usr/share/portfel/config.yml
