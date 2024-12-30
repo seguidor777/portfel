@@ -7,7 +7,7 @@ import (
 
 // TestGetPriceDrop tests getPriceDrop function
 func TestGetPriceDrop(t *testing.T) {
-	slugs := []string{"bitcoin", "cardano", "ethereum", "solana", "binancecoin", "ripple"}
+	slugs := []string{"avalanche-2", "binancecoin", "bitcoin", "cardano", "chainlink", "ethereum", "hedera-hashgraph", "polkadot", "ripple", "solana", "sui", "stellar", "the-open-network", "tron", "uniswap"}
 
 	for _, slug := range slugs {
 		_, err := getPriceDrop(slug)

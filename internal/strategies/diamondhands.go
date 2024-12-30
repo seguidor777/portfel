@@ -85,11 +85,16 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
-	// Round to 2 decimals
-	assetStake := math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
-	acc += assetStake
+	assetStake := 0.0
 
 	if math.Abs(priceDrop/100) < d.D.ExpectedPriceDrop {
+		// Add new stake to accumulation
+		if quotePosition >= d.D.MinimumBalance {
+			// Round to 2 decimals
+			assetStake = math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
+			acc += assetStake
+		}
+
 		if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), fmt.Sprintf("%f", acc)); err != nil {
 			log.Error(err)
 			return

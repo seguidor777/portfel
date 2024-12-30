@@ -77,11 +77,14 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	athDelta := d.D.ATHTest[df.Pair] - d.D.LastClose[df.Pair]
-	// Round to 2 decimals
-	assetStake := math.Floor(d.D.AssetWeights[df.Pair]*deposit*100) / 100
-	acc += assetStake
+	assetStake := 0.0
 
 	if athDelta/d.D.ATHTest[df.Pair] < d.D.ExpectedPriceDrop {
+		// Add new stake to accumulation
+		// Round to 2 decimals
+		assetStake = math.Floor(d.D.AssetWeights[df.Pair]*deposit*100) / 100
+		acc += assetStake
+
 		if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), fmt.Sprintf("%f", acc)); err != nil {
 			log.Error(err)
 			return
