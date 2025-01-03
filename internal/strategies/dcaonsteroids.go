@@ -50,6 +50,8 @@ func (d DCAOnSteroids) Indicators(df *model.Dataframe) []strategy.ChartIndicator
 }
 
 func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
+	atomic.AddUint32(&counter, 1)
+	defer d.resetAssetStake()
 	accVal, err := d.kv.Get(fmt.Sprintf("%s-acc", df.Pair))
 	if err != nil {
 		if err.Error() != notFoundErr {
@@ -61,13 +63,13 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 
 	acc, _ := strconv.ParseFloat(accVal, 64)
 	week := (df.LastUpdate.Day()-1)/7 + 1
-	deposit := 0.0
+	quotePosition := 0.0
 
 	if dayIn(int(df.LastUpdate.Weekday()), []int{5}) && dayIn(week, []int{2}) {
-		deposit = d.D.MinimumBalance
+		quotePosition = d.D.MinimumBalance
 	}
 
-	if deposit == 0.0 && acc == 0.0 {
+	if quotePosition == 0.0 && acc == 0.0 {
 		return
 	}
 
@@ -77,14 +79,14 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	athDelta := d.D.ATHTest[df.Pair] - d.D.LastClose[df.Pair]
-	assetStake := 0.0
+
+	if quotePosition >= d.D.MinimumBalance {
+		// Round to 2 decimals
+		d.D.AssetStake[df.Pair] = math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
+		acc += d.D.AssetStake[df.Pair]
+	}
 
 	if athDelta/d.D.ATHTest[df.Pair] < d.D.ExpectedPriceDrop {
-		// Add new stake to accumulation
-		// Round to 2 decimals
-		assetStake = math.Floor(d.D.AssetWeights[df.Pair]*deposit*100) / 100
-		acc += assetStake
-
 		if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), fmt.Sprintf("%f", acc)); err != nil {
 			log.Error(err)
 			return
@@ -97,6 +99,7 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	// Buy more coins
 	_, err = broker.CreateOrderMarketQuote(ninjabot.SideTypeBuy, df.Pair, acc)
 	if err != nil {
+		log.Warnln("Cannot create order for ", df.Pair)
 		log.Error(err)
 		return
 	}
@@ -106,23 +109,17 @@ func (d DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	// Reset accumulation
 	if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), "0.0"); err != nil {
 		log.Error(err)
-		return
 	}
+}
 
-	if assetStake > 0 {
-		atomic.AddUint32(&counter, 1)
-
-		// If diversification has been completed then reset stakes
-		if int(atomic.LoadUint32(&counter)) == len(d.D.AssetWeights) {
-			for pair := range d.D.AssetStake {
-				d.D.AssetStake[pair] = 0.0
-			}
-
-			atomic.CompareAndSwapUint32(&counter, counter, 0)
-			return
+func (d *DCAOnSteroids) resetAssetStake() {
+	// If diversification has been completed then reset stakes
+	if int(atomic.LoadUint32(&counter)) == len(d.D.AssetWeights) {
+		for pair := range d.D.AssetStake {
+			d.D.AssetStake[pair] = 0.0
 		}
 
-		// Save asset stake for further calculation
-		d.D.AssetStake[df.Pair] = assetStake
+		atomic.CompareAndSwapUint32(&counter, counter, 0)
+		log.Warnln("Asset stakes have been reset")
 	}
 }

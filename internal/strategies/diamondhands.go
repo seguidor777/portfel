@@ -49,6 +49,8 @@ func (d DiamondHands) Indicators(df *model.Dataframe) []strategy.ChartIndicator 
 }
 
 func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
+	atomic.AddUint32(&counter, 1)
+	defer d.resetAssetStake()
 	// Trade as long there is available balance
 	account, err := broker.Account()
 	if err != nil {
@@ -85,16 +87,13 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
-	assetStake := 0.0
+	if quotePosition >= d.D.MinimumBalance {
+		// Round to 2 decimals
+		d.D.AssetStake[df.Pair] = math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
+		acc += d.D.AssetStake[df.Pair]
+	}
 
 	if math.Abs(priceDrop/100) < d.D.ExpectedPriceDrop {
-		// Add new stake to accumulation
-		if quotePosition >= d.D.MinimumBalance {
-			// Round to 2 decimals
-			assetStake = math.Floor(d.D.AssetWeights[df.Pair]*quotePosition*100) / 100
-			acc += assetStake
-		}
-
 		if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), fmt.Sprintf("%f", acc)); err != nil {
 			log.Error(err)
 			return
@@ -119,23 +118,17 @@ func (d DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 	// Reset accumulation
 	if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), "0.0"); err != nil {
 		log.Error(err)
-		return
 	}
+}
 
-	if assetStake > 0 {
-		atomic.AddUint32(&counter, 1)
-
-		// If diversification has been completed then reset stakes
-		if int(atomic.LoadUint32(&counter)) == len(d.D.AssetWeights) {
-			for pair := range d.D.AssetStake {
-				d.D.AssetStake[pair] = 0.0
-			}
-
-			atomic.CompareAndSwapUint32(&counter, counter, 0)
-			return
+func (d *DiamondHands) resetAssetStake() {
+	// If diversification has been completed then reset stakes
+	if int(atomic.LoadUint32(&counter)) == len(d.D.AssetWeights) {
+		for pair := range d.D.AssetStake {
+			d.D.AssetStake[pair] = 0.0
 		}
 
-		// Save asset stake for further calculation
-		d.D.AssetStake[df.Pair] = assetStake
+		atomic.CompareAndSwapUint32(&counter, counter, 0)
+		log.Warnln("Asset stakes have been reset")
 	}
 }
