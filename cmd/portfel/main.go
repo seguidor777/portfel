@@ -10,11 +10,14 @@ import (
 	"os"
 )
 
+var version = "0.0.1"
+
 func main() {
+	log.Println("Running version", version)
 	tradeCmd := flag.NewFlagSet("trade", flag.ExitOnError)
 	dryRun := tradeCmd.Bool("dry-run", false, "Trade in dry-run mode")
 	tradeConfigPath := tradeCmd.String("config", "user_data/config.yml", "Configuration file path")
-    databasePath := tradeCmd.String("database", "user_data/db", "Database path")
+	databasePath := tradeCmd.String("database", "user_data/db", "Database path")
 
 	testCmd := flag.NewFlagSet("test", flag.ExitOnError)
 	testConfigPath := testCmd.String("config", "user_data/config.yml", "Configuration file path")
