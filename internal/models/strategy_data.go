@@ -14,7 +14,7 @@ const (
 	noCoinsListErr  = "no coins list in the JSON response"
 )
 
-var coningeckoSlugs = map[string]string{
+var coingeckoSlugs = map[string]string{
 	"ADA":  "cardano",
 	"AVAX": "avalanche-2",
 	"BNB":  "binancecoin",
@@ -98,7 +98,7 @@ func getSlugs(assetWeights map[string]float64) (map[string]string, error) {
 	for pair := range assetWeights {
 		symbol := strings.Split(pair, USDSymbol)[0]
 
-		if slug, ok := coningeckoSlugs[symbol]; ok {
+		if slug, ok := coingeckoSlugs[symbol]; ok {
 			slugs[pair] = slug
 		} else {
 			return nil, fmt.Errorf(coinNotFoundErr, symbol)
