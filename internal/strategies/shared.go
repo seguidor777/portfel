@@ -27,25 +27,26 @@ func dayIn(day int, days []int) bool {
 	return false
 }
 
-// Gets the price drop since the ATH
-func getPriceDrop(slug string) (float64, error) {
+// getMarketData fetches the market_data block for the given coin slug from CoinGecko
+func getMarketData(slug string) (map[string]interface{}, error) {
 	resp, err := resty.New().R().
 		SetHeader("x-cg-demo-api-key", os.Getenv("COINGECKO_API_KEY")).
 		Get(fmt.Sprintf("https://api.coingecko.com/api/v3/coins/%s?localization=false&tickers=false&community_data=false&developer_data=false&sparkline=false", slug))
 	if err != nil {
-		return 0.0, err
+		return nil, err
 	}
 
 	var jsonResp map[string]interface{}
 	json.Unmarshal(resp.Body(), &jsonResp)
 	if len(jsonResp) == 0 {
-		return 0.0, errors.New(noMarketDataErr)
+		return nil, errors.New(noMarketDataErr)
 	}
 
 	marketData := jsonResp["market_data"]
 	if marketData == nil {
-		return 0.0, fmt.Errorf(priceDropNotFoundErr, slug)
+		return nil, fmt.Errorf(priceDropNotFoundErr, slug)
 	}
 
-	return marketData.(map[string]interface{})["ath_change_percentage"].(map[string]interface{})["usd"].(float64), nil
+	return marketData.(map[string]interface{}), nil
 }
+
