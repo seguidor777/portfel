@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"strings"
+
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -15,20 +16,21 @@ const (
 )
 
 var coingeckoSlugs = map[string]string{
+	"AAVE": "aave",
 	"ADA":  "cardano",
-	"AVAX": "avalanche-2",
+	"ARB":  "arbitrum",
+	"AVAX": "avalanche",
 	"BNB":  "binancecoin",
 	"BTC":  "bitcoin",
 	"DOT":  "polkadot",
 	"ETH":  "ethereum",
-	"HBAR": "hedera-hashgraph",
 	"LINK": "chainlink",
+	"NEAR": "near",
+	"OP":   "optimism",
+	"POL":  "polygon",
 	"SOL":  "solana",
 	"SUI":  "sui",
-	"TON":  "the-open-network",
-	"TRX":  "tron",
 	"UNI":  "uniswap",
-	"XLM":  "stellar",
 	"XRP":  "ripple",
 }
 
@@ -60,21 +62,22 @@ func NewStrategyData(config *Config) (*StrategyData, error) {
 		Volume:            make(map[string]float64),
 		// Last ATH
 		ATHTest: map[string]float64{
-			"BTCUSDT":  68972.0,
-			"ADAUSDT":  3.1016,
-			"ETHUSDT":  4886.0,
-			"SOLUSDT":  259.0,
-			"BNBUSDT":  692.2,
-			"XRPUSDT":  1.9706,
-			"DOTUSDT":  55.0,
-			"UNIUSDT":  44.357,
-			"AVAXUSDT": 146.76,
-			"LINKUSDT": 53.08,
-			"TRXUSDT":  0.1803,
-			"TONUSDT":  10.0,
-			"HBARUSDT": 0.57512,
-			"XLMUSDT":  0.797,
+			"BTCUSDT":  112032.45,
+			"ETHUSDT":  4867.51,
+			"SOLUSDT":  293.31,
+			"BNBUSDT":  794.18,
+			"LINKUSDT": 52.7,
+			"ARBUSDT":  2.4,
+			"AAVEUSDT": 661.69,
+			"ADAUSDT":  3.1065,
+			"UNIUSDT":  44.92,
+			"AVAXUSDT": 146.22,
+			"POLUSDT":  2.92,
+			"NEARUSDT": 20.42,
 			"SUIUSDT":  10.0,
+			"TONUSDT":  10.0,
+			"XRPUSDT":  3.65,
+			"DOTUSDT":  55.127,
 		},
 		Slugs: slugs,
 	}, nil
