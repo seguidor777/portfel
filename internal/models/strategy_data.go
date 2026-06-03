@@ -42,6 +42,7 @@ type StrategyData struct {
 	LastHigh          map[string]float64
 	AssetStake        map[string]float64
 	Volume            map[string]float64
+	SellProceeds      map[string]float64 // cumulative USDT received from ATH sells
 	ATHTest           map[string]float64
 	Slugs             map[string]string
 }
@@ -60,24 +61,29 @@ func NewStrategyData(config *Config) (*StrategyData, error) {
 		LastHigh:          make(map[string]float64),
 		AssetStake:        make(map[string]float64),
 		Volume:            make(map[string]float64),
-		// Last ATH
+		SellProceeds:      make(map[string]float64),
+		// ATH as of 2022-06-14 (start of the backtest window).
+		// Coins from the 2021 bull run use their actual all-time highs.
+		// ARB (launched Mar 2023) and SUI (launched May 2023) use their
+		// first-day candle high since they had no ATH before this date.
 		ATHTest: map[string]float64{
-			"BTCUSDT":  112032.45,
-			"ETHUSDT":  4867.51,
-			"SOLUSDT":  293.31,
-			"BNBUSDT":  794.18,
-			"LINKUSDT": 52.7,
-			"ARBUSDT":  2.4,
-			"AAVEUSDT": 661.69,
-			"ADAUSDT":  3.1065,
-			"UNIUSDT":  44.92,
-			"AVAXUSDT": 146.22,
-			"POLUSDT":  2.92,
-			"NEARUSDT": 20.42,
-			"SUIUSDT":  10.0,
-			"TONUSDT":  10.0,
-			"XRPUSDT":  3.65,
-			"DOTUSDT":  55.127,
+			"BTCUSDT":  69044.77, // Nov 10, 2021
+			"ETHUSDT":  4891.70,  // Nov 10, 2021
+			"SOLUSDT":  260.06,   // Nov 6, 2021
+			"BNBUSDT":  686.31,   // May 10, 2021
+			"LINKUSDT": 52.70,    // Aug 16, 2020
+			"ARBUSDT":  1.60,     // first available candle (launched Mar 2023)
+			"AAVEUSDT": 661.69,   // May 18, 2021
+			"ADAUSDT":  3.10,     // Sep 2, 2021
+			"UNIUSDT":  44.92,    // May 3, 2021
+			"AVAXUSDT": 146.22,   // Nov 21, 2021
+			"POLUSDT":  2.92,     // Dec 27, 2021
+			"NEARUSDT": 20.42,    // Jan 16, 2022
+			"SUIUSDT":  2.00,     // first available candle (launched May 2023)
+			"TONUSDT":  5.84,     // Nov 2021
+			"XRPUSDT":  3.84,     // Jan 7, 2018
+			"DOTUSDT":  55.09,    // Nov 4, 2021
+			"OPUSDT":   10.0,     // placeholder (OP data not in this window)
 		},
 		Slugs: slugs,
 	}, nil

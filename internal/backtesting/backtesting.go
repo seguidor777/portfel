@@ -3,6 +3,7 @@ package backtesting
 import (
 	"context"
 	"fmt"
+
 	"github.com/seguidor777/portfel/internal/localkv"
 	"github.com/seguidor777/portfel/internal/models"
 
@@ -15,7 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const walletAmount = 6000
+const walletAmount = 11000
 
 // TODO: Pass name of strategy and call it from a switch
 func Run(config *models.Config, databasePath *string) {
@@ -110,10 +111,28 @@ func Run(config *models.Config, databasePath *string) {
 
 		assetValue := asset * strategy.D.LastClose[pair]
 		volume := strategy.D.Volume[pair]
-		profitPerc := (assetValue - volume) / volume * 100
-		fmt.Printf("%s = %.2f USDT, Asset Qty = %f, Profit = %.2f%%\n", pair, assetValue, asset, profitPerc)
+		switch {
+		case volume == 0:
+			fmt.Printf("%s = %.2f USDT, Asset Qty = %f, Profit = N/A (no buys executed)\n", pair, assetValue, asset)
+		case asset == 0:
+			// Position was fully sold at ATH; show the realized profit from sell proceeds.
+			proceeds := strategy.D.SellProceeds[pair]
+			realizedProfit := proceeds - volume
+			realizedPerc := realizedProfit / volume * 100
+			fmt.Printf("%s = SOLD, Proceeds = %.2f USDT, Profit = %.2f USDT (%.2f%%)\n", pair, proceeds, realizedProfit, realizedPerc)
+		default:
+			profitPerc := (assetValue - volume) / volume * 100
+			fmt.Printf("%s = %.2f USDT, Asset Qty = %f, Profit = %.2f%%\n", pair, assetValue, asset, profitPerc)
+		}
 		totalEquity += assetValue
 	}
+
+	account, err := wallet.Account()
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, usdtBalance := account.Balance("", models.USDSymbol)
+	totalEquity += usdtBalance.Free
 
 	totalVolume := 0.0
 
@@ -121,8 +140,8 @@ func Run(config *models.Config, databasePath *string) {
 		totalVolume += volume
 	}
 
-	totalProfit := totalEquity - totalVolume
-	totalProfitPerc := totalProfit / totalVolume * 100
+	totalProfit := totalEquity - float64(walletAmount)
+	totalProfitPerc := totalProfit / float64(walletAmount) * 100
 	fmt.Printf("TOTAL EQUITY = %.2f USDT, Profit = %.2f = %.2f%%\n--------------\n", totalEquity, totalProfit, totalProfitPerc)
 
 	// Display candlesticks chart in browser
