@@ -2,16 +2,17 @@ package binance
 
 import (
 	"context"
+	"log"
+	"os"
+	"path"
+	"strconv"
+
 	"github.com/rodrigo-brito/ninjabot"
 	"github.com/rodrigo-brito/ninjabot/exchange"
 	"github.com/rodrigo-brito/ninjabot/storage"
 	"github.com/seguidor777/portfel/internal/localkv"
 	"github.com/seguidor777/portfel/internal/models"
 	"github.com/seguidor777/portfel/internal/strategies"
-	"log"
-	"os"
-	"path"
-	"strconv"
 )
 
 func Run(config *models.Config, databasePath *string) {
@@ -63,6 +64,19 @@ func Run(config *models.Config, databasePath *string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		bot, err := ninjabot.NewBot(ctx, settings, binance, strat, ninjabot.WithStorage(storage))
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		// Run ninjabot
+		err = bot.Run(ctx)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	case "Balancer":
+		strat := strategies.NewBalancer(config)
 
 		bot, err := ninjabot.NewBot(ctx, settings, binance, strat, ninjabot.WithStorage(storage))
 		if err != nil {
