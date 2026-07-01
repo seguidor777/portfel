@@ -84,6 +84,7 @@ func (b Balancer) CalculatePositionAdjustment(df *ninjabot.Dataframe, broker ser
 func (b Balancer) OnCandle(df *model.Dataframe, broker service.Broker) {
 	week := (df.LastUpdate.Day()-1)/7 + 1
 
+	// Only trade the third friday of each month
 	if dayIn(int(df.LastUpdate.Weekday()), []int{5}) && week == 3 {
 		expected, diff, err := b.CalculatePositionAdjustment(df, broker)
 		if err != nil {
