@@ -19,7 +19,7 @@ var coingeckoSlugs = map[string]string{
 	"AAVE": "aave",
 	"ADA":  "cardano",
 	"ARB":  "arbitrum",
-	"AVAX": "avalanche",
+	"AVAX": "avalanche-2",
 	"BNB":  "binancecoin",
 	"BTC":  "bitcoin",
 	"DOT":  "polkadot",
@@ -27,7 +27,6 @@ var coingeckoSlugs = map[string]string{
 	"LINK": "chainlink",
 	"NEAR": "near",
 	"OP":   "optimism",
-	"POL":  "polygon",
 	"SOL":  "solana",
 	"SUI":  "sui",
 	"UNI":  "uniswap",
@@ -45,6 +44,7 @@ type StrategyData struct {
 	SellProceeds      map[string]float64 // cumulative USDT received from ATH sells
 	ATHTest           map[string]float64
 	Slugs             map[string]string
+	Metadata          map[string]map[string]float64
 }
 
 func NewStrategyData(config *Config) (*StrategyData, error) {
@@ -77,15 +77,14 @@ func NewStrategyData(config *Config) (*StrategyData, error) {
 			"ADAUSDT":  3.10,     // Sep 2, 2021
 			"UNIUSDT":  44.92,    // May 3, 2021
 			"AVAXUSDT": 146.22,   // Nov 21, 2021
-			"POLUSDT":  2.92,     // Dec 27, 2021
 			"NEARUSDT": 20.42,    // Jan 16, 2022
 			"SUIUSDT":  2.00,     // first available candle (launched May 2023)
-			"TONUSDT":  5.84,     // Nov 2021
 			"XRPUSDT":  3.84,     // Jan 7, 2018
 			"DOTUSDT":  55.09,    // Nov 4, 2021
 			"OPUSDT":   10.0,     // placeholder (OP data not in this window)
 		},
-		Slugs: slugs,
+		Slugs:    slugs,
+		Metadata: make(map[string]map[string]float64),
 	}, nil
 }
 
