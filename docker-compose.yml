@@ -1,6 +1,8 @@
 services:
   portfel:
-    image: 038824004049.dkr.ecr.us-west-2.amazonaws.com/portfel
+    image: ghcr.io/seguidor777/portfel
+    ports:
+      - "443:443"
     restart: unless-stopped
     container_name: portfel
     volumes:
