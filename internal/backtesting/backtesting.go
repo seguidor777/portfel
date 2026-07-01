@@ -16,7 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const walletAmount = 11000
+const walletAmount = 12000
 
 // TODO: Pass name of strategy and call it from a switch
 func Run(config *models.Config, databasePath *string) {
@@ -39,10 +39,7 @@ func Run(config *models.Config, databasePath *string) {
 		log.Fatal(err)
 	}
 
-	strategy, err := strategies.NewDCAOnSteroids(config, kv)
-	if err != nil {
-		log.Fatal(err)
-	}
+	strategy := strategies.NewBalancer(config)
 
 	pairFeed := make([]exchange.PairFeed, 0, len(config.AssetWeights))
 
@@ -100,6 +97,14 @@ func Run(config *models.Config, databasePath *string) {
 
 	// Print bot results
 	bot.Summary()
+
+	bahDD, err := BuyAndHoldDrawdown(config, strategy.Timeframe(), walletAmount)
+	if err != nil {
+		log.Warnf("Could not compute B&H drawdown: %v", err)
+	} else {
+		fmt.Printf("BUY & HOLD MAX DRAWDOWN = -%.2f %%\n", bahDD)
+	}
+
 	totalEquity := 0.0
 	fmt.Printf("REAL ASSETS VALUE\n")
 

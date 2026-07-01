@@ -6,21 +6,21 @@ import (
 )
 
 var assetWeights = map[string]float64{
-	"BTCUSDT":  0.5,
-	"ADAUSDT":  0.1,
-	"ETHUSDT":  0.07,
-	"SOLUSDT":  0.05,
-	"BNBUSDT":  0.05,
-	"XRPUSDT":  0.03,
-	"DOTUSDT":  0.025,
-	"UNIUSDT":  0.025,
-	"AVAXUSDT": 0.025,
-	"LINKUSDT": 0.025,
-	"TRXUSDT":  0.02,
-	"TONUSDT":  0.02,
-	"HBARUSDT": 0.02,
-	"XLMUSDT":  0.02,
-	"SUIUSDT":  0.02,
+	"BTCUSDT": 0.29,
+	"ETHUSDT": 0.25,
+	"SOLUSDT": 0.08,
+	"BNBUSDT": 0.05,
+	"LINKUSDT": 0.05,
+	"ARBUSDT": 0.05,
+	"AAVEUSDT": 0.04,
+	"OPUSDT": 0.03,
+	"UNIUSDT": 0.03,
+	"AVAXUSDT": 0.03,
+	"NEARUSDT": 0.02,
+	"SUIUSDT": 0.02,
+	"XRPUSDT": 0.02,
+	"ADAUSDT": 0.02,
+	"DOTUSDT": 0.02,
 }
 
 // TestGetSlugs tests getSlugs function

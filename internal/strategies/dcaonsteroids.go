@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/rodrigo-brito/ninjabot"
+	"github.com/rodrigo-brito/ninjabot/indicator"
 	"github.com/rodrigo-brito/ninjabot/model"
 	"github.com/rodrigo-brito/ninjabot/service"
 	"github.com/rodrigo-brito/ninjabot/strategy"
@@ -41,14 +42,39 @@ func (d DCAOnSteroids) Timeframe() string {
 }
 
 func (d DCAOnSteroids) WarmupPeriod() int {
-	return 1
+	return 21
 }
 
 func (d DCAOnSteroids) Indicators(df *model.Dataframe) []strategy.ChartIndicator {
 	d.D.LastClose[df.Pair] = df.Close.Last(0)
 	d.D.LastHigh[df.Pair] = df.High.Last(0)
+	sma20 := indicator.SMA(df.Close, 20)
 
-	return []strategy.ChartIndicator{}
+	// Ensure the inner map for this pair is initialized
+	if d.D.Metadata[df.Pair] == nil {
+		d.D.Metadata[df.Pair] = make(map[string]float64)
+	}
+
+	// Store only the latest SMA value for use in OnCandle
+	if len(sma20) > 0 {
+		d.D.Metadata[df.Pair]["sma20"] = sma20[len(sma20)-1]
+	}
+
+	return []strategy.ChartIndicator{
+		{
+			Overlay:   true,
+			GroupName: "MA's",
+			Time:      df.Time,
+			Metrics: []strategy.IndicatorMetric{
+				{
+					Values: sma20,
+					Name:   "EMA 20",
+					Color:  "red",
+					Style:  strategy.StyleLine,
+				},
+			},
+		},
+	}
 }
 
 func (d *DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
@@ -91,10 +117,9 @@ func (d *DCAOnSteroids) OnCandle(df *model.Dataframe, broker service.Broker) {
 	}
 
 	acc, _ := strconv.ParseFloat(accVal, 64)
-	week := (df.LastUpdate.Day()-1)/7 + 1
 	quotePosition := 0.0
 
-	if dayIn(int(df.LastUpdate.Weekday()), []int{5}) && dayIn(week, []int{2}) {
+	if int(df.LastUpdate.Day()) == 9 {
 		quotePosition = d.D.MinimumBalance
 	}
 

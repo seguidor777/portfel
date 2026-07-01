@@ -17,8 +17,9 @@ import (
 )
 
 type DiamondHands struct {
-	D  *models.StrategyData
-	kv *localkv.LocalKV
+	D               *models.StrategyData
+	kv              *localkv.LocalKV
+	fetchMarketData MarketDataFetcher
 }
 
 // NewDiamondHands is used in trade real and dry-run. Sells 100% of a position when price reaches ATH.
@@ -28,12 +29,11 @@ func NewDiamondHands(config *models.Config, kv *localkv.LocalKV) (*DiamondHands,
 		return nil, err
 	}
 
-	d := &DiamondHands{
-		D:  data,
-		kv: kv,
-	}
-
-	return d, nil
+	return &DiamondHands{
+		D:               data,
+		kv:              kv,
+		fetchMarketData: NewMarketDataFetcher(kv, data.Slugs),
+	}, nil
 }
 
 func (d DiamondHands) Timeframe() string {
@@ -64,15 +64,15 @@ func (d *DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 
 	_, quoteBalance := account.Balance("", models.USDSymbol)
 
-	// Single API call: fetches both ATH price and price drop percentage
-	marketData, err := getMarketData(d.D.Slugs[df.Pair])
+	// Fetch ATH price and price drop percentage (cached in KV per day)
+	marketData, err := d.fetchMarketData(d.D.Slugs[df.Pair])
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
-	ath := marketData["ath"].(map[string]interface{})["usd"].(float64)
-	priceDrop := marketData["ath_change_percentage"].(map[string]interface{})["usd"].(float64)
+	ath := marketData["ath"]
+	priceDrop := marketData["ath_change_percentage"]
 
 	// Sell 100% when close reaches ATH, regardless of balance or accumulation state
 	if d.D.LastHigh[df.Pair] >= ath {
@@ -151,6 +151,8 @@ func (d *DiamondHands) OnCandle(df *model.Dataframe, broker service.Broker) {
 		return
 	}
 
+	d.D.Volume[df.Pair] += acc
+
 	// Reset accumulation
 	if err := d.kv.Set(fmt.Sprintf("%s-acc", df.Pair), "0.0"); err != nil {
 		log.Error(err)
@@ -165,6 +167,6 @@ func (d *DiamondHands) resetAssetStake() {
 		}
 
 		atomic.CompareAndSwapUint32(&counter, uint32(len(d.D.AssetWeights)), 0)
-		log.Warnln("Asset stakes have been reset")
+		log.Debugln("Asset stakes have been reset")
 	}
 }
