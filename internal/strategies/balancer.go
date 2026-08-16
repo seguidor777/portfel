@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/rodrigo-brito/ninjabot/strategy"
+	"github.com/seguidor777/portfel/internal/localkv"
 	"github.com/seguidor777/portfel/internal/models"
 
 	"github.com/rodrigo-brito/ninjabot"
@@ -11,6 +12,12 @@ import (
 	"github.com/rodrigo-brito/ninjabot/service"
 	log "github.com/sirupsen/logrus"
 )
+
+func init() {
+	Register("Balancer", func(config *models.Config, _ *localkv.LocalKV) (strategy.Strategy, error) {
+		return NewBalancer(config), nil
+	})
+}
 
 type Balancer struct {
 	D              *models.StrategyData

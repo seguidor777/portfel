@@ -27,6 +27,9 @@ var assetWeights = map[string]float64{
 func TestGetSlugs(t *testing.T) {
 	slugs, err := getSlugs(assetWeights)
 	if err != nil {
+		if err.Error() == noCoinsListErr {
+			t.Skip("skipping test: CoinGecko API rate limited or unavailable without API key")
+		}
 		t.Fatal(err)
 	}
 
@@ -40,6 +43,10 @@ func TestGetSlugsErr(t *testing.T) {
 	delete(assetWeights, "BTCUSDT")
 	assetWeights["@@@USDT"] = 0.5
 	_, err := getSlugs(assetWeights)
+
+	if err != nil && err.Error() == noCoinsListErr {
+		t.Skip("skipping test: CoinGecko API rate limited or unavailable without API key")
+	}
 
 	if err == nil {
 		t.Fatal(err)

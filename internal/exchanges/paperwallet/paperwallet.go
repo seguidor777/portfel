@@ -64,30 +64,25 @@ func Run(config *models.Config, databasePath *string) {
 	}
 
 	// Initialize strategy and bot
-	switch config.Strategy {
-	case "DiamondHands":
-		strat, err := strategies.NewDiamondHands(config, kv)
-		if err != nil {
-			log.Fatal(err)
-		}
+	strat, err := strategies.New(config, kv)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		bot, err := ninjabot.NewBot(
-			ctx,
-			settings,
-			paperWallet,
-			strat,
-			ninjabot.WithStorage(storage),
-			ninjabot.WithPaperWallet(paperWallet),
-		)
-		if err != nil {
-			log.Fatalln(err)
-		}
+	bot, err := ninjabot.NewBot(
+		ctx,
+		settings,
+		paperWallet,
+		strat,
+		ninjabot.WithStorage(storage),
+		ninjabot.WithPaperWallet(paperWallet),
+	)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-		err = bot.Run(ctx)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	default:
-		log.Fatal("Invalid strategy")
+	err = bot.Run(ctx)
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
