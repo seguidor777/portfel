@@ -23,9 +23,13 @@ type DCAOnSteroids struct {
 }
 
 func init() {
-	Register("DCAOnSteroids", func(config *models.Config, kv *localkv.LocalKV) (strategy.Strategy, error) {
+	Register("DCAOnSteroids", func(config *models.Config, kv *localkv.LocalKV) (PortfelStrategy, error) {
 		return NewDCAOnSteroids(config, kv)
 	})
+}
+
+func (d *DCAOnSteroids) GetData() *models.StrategyData {
+	return d.D
 }
 
 // NewDCAOnSteroids is used for backtesting

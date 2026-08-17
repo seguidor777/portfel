@@ -8,7 +8,12 @@ import (
 	"github.com/seguidor777/portfel/internal/models"
 )
 
-type Factory func(config *models.Config, kv *localkv.LocalKV) (strategy.Strategy, error)
+type PortfelStrategy interface {
+	strategy.Strategy
+	GetData() *models.StrategyData
+}
+
+type Factory func(config *models.Config, kv *localkv.LocalKV) (PortfelStrategy, error)
 
 var registry = make(map[string]Factory)
 
@@ -19,7 +24,7 @@ func Register(name string, factory Factory) {
 }
 
 // New creates a strategy instance dynamically based on config.Strategy.
-func New(config *models.Config, kv *localkv.LocalKV) (strategy.Strategy, error) {
+func New(config *models.Config, kv *localkv.LocalKV) (PortfelStrategy, error) {
 	factory, ok := registry[config.Strategy]
 	if !ok {
 		return nil, fmt.Errorf("invalid strategy: %s", config.Strategy)

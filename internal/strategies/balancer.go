@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	Register("Balancer", func(config *models.Config, _ *localkv.LocalKV) (strategy.Strategy, error) {
+	Register("Balancer", func(config *models.Config, _ *localkv.LocalKV) (PortfelStrategy, error) {
 		return NewBalancer(config), nil
 	})
 }
@@ -22,6 +22,10 @@ func init() {
 type Balancer struct {
 	D              *models.StrategyData
 	MinimumBalance float64
+}
+
+func (b Balancer) GetData() *models.StrategyData {
+	return b.D
 }
 
 type Weight struct {

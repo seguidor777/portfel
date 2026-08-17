@@ -3,7 +3,6 @@ package strategies
 import (
 	"testing"
 
-	"github.com/rodrigo-brito/ninjabot/strategy"
 	"github.com/seguidor777/portfel/internal/localkv"
 	"github.com/seguidor777/portfel/internal/models"
 )
@@ -53,7 +52,7 @@ func TestNewStrategy(t *testing.T) {
 }
 
 func TestCustomStrategyRegistration(t *testing.T) {
-	Register("CustomTestStrategy", func(config *models.Config, kv *localkv.LocalKV) (strategy.Strategy, error) {
+	Register("CustomTestStrategy", func(config *models.Config, kv *localkv.LocalKV) (PortfelStrategy, error) {
 		return NewBalancer(config), nil
 	})
 

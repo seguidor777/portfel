@@ -39,19 +39,23 @@ func Run(config *models.Config, databasePath *string) {
 		log.Fatal(err)
 	}
 
-	strategy := strategies.NewBalancer(config)
+	strat, err := strategies.New(config, kv)
+	if err != nil {
+		log.Fatal(err)
+	}
+	stratData := strat.GetData()
 
 	pairFeed := make([]exchange.PairFeed, 0, len(config.AssetWeights))
 
 	for pair := range config.AssetWeights {
 		pairFeed = append(pairFeed, exchange.PairFeed{
 			Pair:      pair,
-			File:      fmt.Sprintf("testdata/%s-%s.csv", pair, strategy.Timeframe()),
-			Timeframe: strategy.Timeframe(),
+			File:      fmt.Sprintf("testdata/%s-%s.csv", pair, strat.Timeframe()),
+			Timeframe: strat.Timeframe(),
 		})
 	}
 
-	csvFeed, err := exchange.NewCSVFeed(strategy.Timeframe(), pairFeed...)
+	csvFeed, err := exchange.NewCSVFeed(strat.Timeframe(), pairFeed...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,7 +81,7 @@ func Run(config *models.Config, databasePath *string) {
 		ctx,
 		settings,
 		wallet,
-		strategy,
+		strat,
 		ninjabot.WithBacktest(wallet),
 		ninjabot.WithStorage(storage),
 		ninjabot.WithCandleSubscription(chart),
@@ -98,7 +102,7 @@ func Run(config *models.Config, databasePath *string) {
 	// Print bot results
 	bot.Summary()
 
-	bahDD, err := BuyAndHoldDrawdown(config, strategy.Timeframe(), walletAmount)
+	bahDD, err := BuyAndHoldDrawdown(config, strat.Timeframe(), walletAmount)
 	if err != nil {
 		log.Warnf("Could not compute B&H drawdown: %v", err)
 	} else {
@@ -108,20 +112,20 @@ func Run(config *models.Config, databasePath *string) {
 	totalEquity := 0.0
 	fmt.Printf("REAL ASSETS VALUE\n")
 
-	for pair := range strategy.D.AssetWeights {
+	for pair := range stratData.AssetWeights {
 		asset, _, err := wallet.Position(pair)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		assetValue := asset * strategy.D.LastClose[pair]
-		volume := strategy.D.Volume[pair]
+		assetValue := asset * stratData.LastClose[pair]
+		volume := stratData.Volume[pair]
 		switch {
 		case volume == 0:
 			fmt.Printf("%s = %.2f USDT, Asset Qty = %f, Profit = N/A (no buys executed)\n", pair, assetValue, asset)
 		case asset == 0:
 			// Position was fully sold at ATH; show the realized profit from sell proceeds.
-			proceeds := strategy.D.SellProceeds[pair]
+			proceeds := stratData.SellProceeds[pair]
 			realizedProfit := proceeds - volume
 			realizedPerc := realizedProfit / volume * 100
 			fmt.Printf("%s = SOLD, Proceeds = %.2f USDT, Profit = %.2f USDT (%.2f%%)\n", pair, proceeds, realizedProfit, realizedPerc)
@@ -141,7 +145,7 @@ func Run(config *models.Config, databasePath *string) {
 
 	totalVolume := 0.0
 
-	for _, volume := range strategy.D.Volume {
+	for _, volume := range stratData.Volume {
 		totalVolume += volume
 	}
 

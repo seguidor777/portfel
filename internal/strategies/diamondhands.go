@@ -23,9 +23,13 @@ type DiamondHands struct {
 }
 
 func init() {
-	Register("DiamondHands", func(config *models.Config, kv *localkv.LocalKV) (strategy.Strategy, error) {
+	Register("DiamondHands", func(config *models.Config, kv *localkv.LocalKV) (PortfelStrategy, error) {
 		return NewDiamondHands(config, kv)
 	})
+}
+
+func (d *DiamondHands) GetData() *models.StrategyData {
+	return d.D
 }
 
 // NewDiamondHands is used in trade real and dry-run. Sells 100% of a position when price reaches ATH.
